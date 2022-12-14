@@ -1,0 +1,18 @@
+name: wosniack2022
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - scipy
+  - statsmodels
+  - python=3.9
+  - numpy
+  - seaborn
+  - pandas
+  - matplotlib
+  - rdp
+  - ipykernel
+  - regex
+  - openpyxl
+  - pywget
+prefix: /home/festad/anaconda3/envs/wosniack2022
