@@ -21,3 +21,9 @@ Please use VsCode or Jupyter lab to best visualize the code.
 Data has been uploaded on Zenodo:  [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7438188.svg)](https://doi.org/10.5281/zenodo.7438188).
 
 You can ether dowload it from the link provided, and copy it in the `Data` folder, or run the script `initialize_data.py`.
+
+## Preprocessing step
+
+To speed up subsequent scripts, the first step is to read and pre-preocess the data, saving it in a single pandas dataframe.
+
+To do so, please run the `preprocess_data.py` script.
