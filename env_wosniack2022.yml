@@ -15,4 +15,7 @@ dependencies:
   - regex
   - openpyxl
   - pywget
+  - jupyterlab
+  - jupyter
+  - jupytext
 prefix: /home/festad/anaconda3/envs/wosniack2022

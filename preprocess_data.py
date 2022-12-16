@@ -23,14 +23,14 @@ if not path_data.is_dir():
   raise ValueError(f"\nDirectory `{path_data}` does not exist!")
 
 arenas = ['Homogeneous', 'Two_patches', 'Nonnutrient_patches', 'Eight_patches']
+substrates = ['Sucrose','Yeast','Agar','Gel','Apple_juice']
+larvae = ['Rover','Sitter','Anosmic']
 
 for dd in arenas:
   dfull = path_data/dd
   if not dfull.is_dir():
     raise ValueError(f"\nDirectory `{dfull}` does not exist, please import the data first!")
 
-substrates = ['Sucrose','Yeast','Agar','Gel','Apple_juice']
-larvae = ['Rover','Sitter','Anosmic']
 
 all_combinations = itertools.product(arenas,substrates,larvae) 
 
@@ -152,17 +152,22 @@ def read_single_dataset(arena,substrate,larva,datapath,scale=8.0,dt=0.5):
   frames_info = np.transpose(pd.DataFrame(frames_list))
   # read patch centers in two patches experiments
   is_two_patches = (arena == 'Two_patches') or (arena == 'Nonnutrient_patches')
+  is_eight_patches = arena == 'Eight_patches'
   if is_two_patches:
     patch_files = ['ROI_coord1.csv', 'ROI_coord2.csv','ROI_coord3.csv'] if all_three \
       else ['ROI_coord1.csv', 'ROI_coord2.csv']
     patch_info = [pd.read_csv(datapath / pf, header=None) for pf in patch_files]
-  # multi index!
+  if is_eight_patches:
+    patch_files = ['ROI_coord1.csv', 'ROI_coord2.csv','ROI_coord3.csv'] if all_three \
+      else ['ROI_coord1.csv', 'ROI_coord2.csv']
+    patch_info = [pd.read_csv(datapath / pf, skiprows=[0],header=None) for pf in patch_files]
+
   # experiment number and larva number
   mult = pd.MultiIndex.from_tuples([get_exp_and_larva_str(s) for s in  data_total.columns.values])
   data_total.columns=mult
   frames_info.columns=mult
   dfout = pd.DataFrame(index=mult,columns=['x','y','nframes','time',\
-     'simple_trajectory','list_turn_points','rdp_mask','rdp_epsilon','patch_info'])
+     'simple_trajectory','idx_turn_points','rdp_mask','rdp_epsilon','patch_info'])
   for mm in mult:
     nfra = int(frames_info.loc[0,mm]/2)
     xy = data_total.loc[:,mm].values/scale # convert to millimeters here
@@ -176,17 +181,17 @@ def read_single_dataset(arena,substrate,larva,datapath,scale=8.0,dt=0.5):
     coord_fix = np.column_stack([x[~coord_nan],y[~coord_nan]])
     simple_traj = rdp(coord_fix, epsilon=rdp_epsilon)
     rdp_mask = rdp(coord_fix, epsilon=rdp_epsilon, return_mask = True)
-    list_turn_points = total_times[rdp_mask]
+    idx_turn_points = total_times[rdp_mask]
     dfout.loc[mm,'nframes'] = nfra
     dfout.loc[mm,'x'] = x
     dfout.loc[mm,'y'] = y
     dfout.loc[mm,'time'] = time
     dfout.loc[mm,'simple_trajectory'] = simple_traj
-    dfout.loc[mm,'list_turn_points'] = list_turn_points
+    dfout.loc[mm,'idx_turn_points'] = idx_turn_points
     dfout.loc[mm,'rdp_mask'] = rdp_mask
     dfout.loc[mm,'rdp_epsilon'] =rdp_epsilon
     # add patch coordinates and radii
-    if is_two_patches:
+    if is_two_patches or is_eight_patches:
       if mm[0] == 'exp1':
         my_patch = patch_info[0]
       elif mm[0] == 'exp2':
@@ -196,8 +201,12 @@ def read_single_dataset(arena,substrate,larva,datapath,scale=8.0,dt=0.5):
       else:
         raise Exception('Wrong experiment parameter {} '.format(mm[0]))
       # also, convert to millimiters
-      dfout.loc[mm,'patch_info'] = [[my_patch[1][0]/scale, my_patch[2][0]/scale, my_patch[3][0]/(2*np.pi*scale)],\
-                                    [my_patch[1][1]/scale, my_patch[2][1]/scale, my_patch[3][1]/(2*np.pi*scale)]]
+      if is_two_patches:
+        dfout.loc[mm,'patch_info'] =\
+          [[my_patch[1][k]/scale, my_patch[2][k]/scale, my_patch[3][k]/(2*np.pi*scale)] for k in range(2)]
+      elif is_eight_patches:
+        dfout.loc[mm,'patch_info'] =\
+          [[my_patch[1][k]/scale, my_patch[2][k]/scale, my_patch[3][k]/(2*np.pi*scale)] for k in range(8)]
   if "Nonnutrient" in arena:
     arena= "Nonnutrient"
   elif "Two" in arena:

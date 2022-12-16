@@ -22,8 +22,24 @@ Data has been uploaded on Zenodo:  [![DOI](https://zenodo.org/badge/DOI/10.5281/
 
 You can ether dowload it from the link provided, and copy it in the `Data` folder, or run the script `initialize_data.py`.
 
-## Preprocessing step
+## Preprocessing of data
 
-To speed up subsequent scripts, the first step is to read and pre-preocess the data, saving it in a single pandas dataframe.
+To speed up subsequent scripts, the first step is to read and pre-preocess the data, saving it in a single pandas dataframe. To do so, please run the `preprocess_data.py` script.
 
-To do so, please run the `preprocess_data.py` script.
+### Data structure
+
+Each dataframe row corresponds to one larva recorded in a sesion. Comlums are:
+
++ **x** :  the x coordinates of the larva trajectory, sampled every 0.5 seconds
++ **y** :  the y coordinates of the larva trajectory, sampled every 0.5 seconds
++ **nframes** : total number of frames, corrisponding to a 50 min recording time
++ **time** : time vector in seconds. Corresponds to `(0:nframes)*0.5`
++ **simple_trajectory**: array of (x,y) coordinates of trajectory, after the RDP algorithm is applied
++ **idx_turn_points**: `<TO-DO>`
++ **rdp_mask**: binary mask that indicates which x and y elements have been selected by the RDP algorithm.
++ **rdp_epsilon**: the epsilon value used in the RDP algorithm
++ **patch_info**: if two patches are present, it containes the patch cetenrs and their size.
+
+## Visualize paths of single larvae
+
+The notebook in `plot_single_path.ipynb` reads the preprocessed data and allows to select and visualize any path in the dataset.
